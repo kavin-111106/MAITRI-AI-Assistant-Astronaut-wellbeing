@@ -1,0 +1,6 @@
+.env
+venv/
+__pycache__/
+node_modules/
+.docker-compose.override.yml
+docker-compose.override.yml
