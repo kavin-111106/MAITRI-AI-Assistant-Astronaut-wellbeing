@@ -1,6 +1,6 @@
 from sqlmodel import Session, select, desc, or_
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime,timezone
 from .database import Astronaut, Conversation, Messages,session_object
 
 class ChatService:
@@ -39,7 +39,7 @@ class ChatService:
 
         conversation = await db.get(Conversation, conversation_id)
         if conversation:
-            conversation.updated_at = datetime.utcnow()
+            conversation.updated_at = datetime.now(timezone.utc)
             db.add(conversation)
             await db.commit()
         
@@ -75,11 +75,13 @@ class ChatService:
     
     @staticmethod
     async def search_past_conversations(db: session_object,astronaut_id: int,keyword: str) -> List[Messages]:
+        # Escape SQL LIKE wildcards so they are treated as literal characters
+        safe_keyword = keyword.replace('%', r'\%').replace('_', r'\_')
         statement = (
             select(Messages)
             .where(
                 Messages.astronaut_id == astronaut_id,
-                Messages.content.ilike(f'%{keyword}%')
+                Messages.content.ilike(f'%{safe_keyword}%', escape='\\')
             )
             .order_by(desc(Messages.created_at))
         )

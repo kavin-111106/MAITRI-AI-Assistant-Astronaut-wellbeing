@@ -1,15 +1,6 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Environment
 .env
-
-# Archives
-*.zip
-
-# OS
-.DS_Store
-Thumbs.db
+venv/
+__pycache__/
+node_modules/
+.docker-compose.override.yml
+docker-compose.override.yml

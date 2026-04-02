@@ -2,19 +2,14 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
+import pgvector
+from backend.database import SQLModel
 from alembic import context
-from baceknd.database import engine,SQLModel
-from baceknd.config import settings
-from urllib.parse import quote
+from backend.config import settings
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-raw_password = settings.database_password
-safe_password = quote(raw_password)
-db_url = f"postgresql+psycopg://{settings.database_username}:{safe_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
-db_url = db_url.replace('%', '%%')
-
+db_url = f"postgresql+psycopg://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
 config.set_main_option("sqlalchemy.url", db_url)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -71,8 +66,12 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        connection.dialect.ischema_names["vector"] = pgvector.sqlalchemy.Vector
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+            user_module_prefix="pgvector.sqlalchemy.",
         )
 
         with context.begin_transaction():
