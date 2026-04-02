@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from .rate_limiter import limiter
-from .router import auth, users, chat, admin,rag_router
+from .router import auth, users, chat, admin,rag_router,health
 import logging
 import time
 
@@ -77,7 +77,7 @@ app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(admin.router)
 app.include_router(rag_router.router)
-
+app.include_router(health.router)
 
 @app.get("/")
 def root():

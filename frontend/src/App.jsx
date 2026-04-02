@@ -40,6 +40,12 @@ const Icons = {
   check: "M20 6L9 17l-5-5",
   clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2",
   zap: "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+  heart: "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z",
+  alert: "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01",
+  users: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
+  activity: "M22 12h-4l-3 9L9 3l-3 9H2",
+  eye: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  refresh: "M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15",
 };
 
 // ─── STARFIELD BACKGROUND ──────────────────────────────────────────────────────
@@ -1034,7 +1040,312 @@ const css = `
     .auth-card { width: 100%; max-width: 400px; }
     .sidebar { width: 200px; }
   }
+
+  /* ── HEALTH INSIGHTS ── */
+  .sev-critical { --sev-color: #ef4444; --sev-bg: rgba(239,68,68,0.08); --sev-border: rgba(239,68,68,0.25); }
+  .sev-high     { --sev-color: #f97316; --sev-bg: rgba(249,115,22,0.08); --sev-border: rgba(249,115,22,0.25); }
+  .sev-medium   { --sev-color: #f59e0b; --sev-bg: rgba(245,158,11,0.08); --sev-border: rgba(245,158,11,0.2); }
+  .sev-low      { --sev-color: #3b82f6; --sev-bg: rgba(59,130,246,0.08); --sev-border: rgba(59,130,246,0.2); }
+  .sev-none     { --sev-color: var(--text-dim); --sev-bg: rgba(255,255,255,0.03); --sev-border: var(--border); }
+
+  .sev-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--sev-bg);
+    color: var(--sev-color);
+    border: 1px solid var(--sev-border);
+  }
+
+  .sev-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--sev-color);
+    flex-shrink: 0;
+  }
+
+  .sev-critical .sev-dot { box-shadow: 0 0 6px var(--sev-color); animation: pulse-dot 1.5s infinite; }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--sev-color, var(--aurora-1));
+  }
+
+  .stat-card-value {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--sev-color, var(--text));
+    line-height: 1;
+  }
+
+  .stat-card-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .insight-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--sev-color);
+    border-radius: var(--r);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .insight-card:hover {
+    background: rgba(255,255,255,0.015);
+    border-color: var(--border-hi);
+    border-left-color: var(--sev-color);
+  }
+
+  .insight-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .insight-type {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    text-transform: capitalize;
+    flex: 1;
+  }
+
+  .insight-meta {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+
+  .insight-summary {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .insight-indicators {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .indicator-chip {
+    padding: 3px 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .insight-action {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(15,244,198,0.04);
+    border: 1px solid rgba(15,244,198,0.1);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--aurora-1);
+    line-height: 1.5;
+  }
+
+  .insight-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .confidence-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .confidence-bar-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .confidence-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--aurora-2), var(--aurora-1));
+    transition: width 0.6s ease;
+  }
+
+  .confidence-label {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .astronaut-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--r);
+    border: 1px solid var(--border);
+    background: var(--panel);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .astronaut-row:hover {
+    background: rgba(255,255,255,0.02);
+    border-color: var(--border-hi);
+  }
+
+  .astronaut-row.selected {
+    background: rgba(15,244,198,0.04);
+    border-color: rgba(15,244,198,0.2);
+  }
+
+  .astronaut-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--surface), var(--panel));
+    border: 2px solid var(--sev-color, var(--border));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sev-color, var(--text-dim));
+    flex-shrink: 0;
+  }
+
+  .astronaut-info { flex: 1; overflow: hidden; }
+  .astronaut-email {
+    font-size: 13px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .astronaut-sub { font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); margin-top: 2px; }
+
+  .sev-counts {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .sev-count-chip {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: var(--sev-bg);
+    color: var(--sev-color);
+    border: 1px solid var(--sev-border);
+  }
+
+  .health-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .health-sidebar {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .health-sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .health-astronaut-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .health-detail {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .empty-health {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 40px;
+  }
 `;
+
 
 // ─── AUTH PAGE ─────────────────────────────────────────────────────────────────
 function AuthPage({ onLogin }) {
@@ -1452,6 +1763,375 @@ function ChatView({ token, email }) {
   );
 }
 
+// ─── HEALTH INSIGHTS VIEW ──────────────────────────────────────────────────────
+function SevBadge({ severity }) {
+  const labels = { critical: "Critical", high: "High", medium: "Medium", low: "Low", none: "None" };
+  return (
+    <span className={`sev-badge sev-${severity || "none"}`}>
+      <span className="sev-dot" />
+      {labels[severity] || severity}
+    </span>
+  );
+}
+
+function InsightCard({ insight, onDismiss }) {
+  const sev = insight.severity || "none";
+  return (
+    <div className={`insight-card sev-${sev}`}>
+      <div className="insight-header">
+        <span className="insight-type">{insight.insight_type?.replace(/_/g, " ")}</span>
+        <SevBadge severity={sev} />
+        <span className="insight-meta">{new Date(insight.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+        {onDismiss && (
+          <button
+            className="btn btn-icon btn-danger btn-sm"
+            title="Dismiss insight"
+            onClick={() => onDismiss(insight.id)}
+            style={{ padding: "4px 6px" }}
+          >
+            <Icon d={Icons.x} size={12} />
+          </button>
+        )}
+      </div>
+
+      {insight.summary && (
+        <div className="insight-summary">{insight.summary}</div>
+      )}
+
+      {insight.indicators?.length > 0 && (
+        <div className="insight-indicators">
+          {insight.indicators.map((ind, i) => (
+            <span key={i} className="indicator-chip">"{ind}"</span>
+          ))}
+        </div>
+      )}
+
+      {insight.recommended_action && insight.recommended_action !== "No action required" && (
+        <div className="insight-action">
+          <Icon d={Icons.zap} size={13} style={{ flexShrink: 0, marginTop: "1px" }} />
+          {insight.recommended_action}
+        </div>
+      )}
+
+      <div className="insight-footer">
+        <div className="confidence-bar-wrap">
+          <span className="confidence-label">Confidence</span>
+          <div className="confidence-bar-track">
+            <div className="confidence-bar-fill" style={{ width: `${Math.round((insight.confidence || 0) * 100)}%` }} />
+          </div>
+          <span className="confidence-label">{Math.round((insight.confidence || 0) * 100)}%</span>
+        </div>
+        {insight.message_id && (
+          <span className="insight-meta">msg #{insight.message_id}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HealthInsightsView({ token }) {
+  const [subview, setSubview] = useState("alerts"); // alerts | summary | astronaut
+  const [alerts, setAlerts] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [astronauts, setAstronauts] = useState([]);
+  const [selectedAstronaut, setSelectedAstronaut] = useState(null);
+  const [astronautReport, setAstronautReport] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadAlerts = useCallback(async () => {
+    setLoading(true); setError("");
+    try {
+      const data = await apiFetch("/health/alerts?limit=50", {}, token);
+      setAlerts(data.alerts || []);
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }, [token]);
+
+  const loadSummary = useCallback(async () => {
+    setLoading(true); setError("");
+    try {
+      const [sumData, astData] = await Promise.all([
+        apiFetch("/health/summary", {}, token),
+        apiFetch("/health/astronauts", {}, token),
+      ]);
+      setSummary(sumData);
+      setAstronauts(astData.astronauts || []);
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }, [token]);
+
+  const loadAstronautReport = useCallback(async (id) => {
+    setLoading(true); setError("");
+    try {
+      const data = await apiFetch(`/health/astronaut/${id}?limit=100`, {}, token);
+      setAstronautReport(data);
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  }, [token]);
+
+  const handleDismiss = async (insightId) => {
+    try {
+      await apiFetch(`/health/insights/${insightId}`, { method: "DELETE" }, token);
+      // Refresh current view
+      if (subview === "alerts") loadAlerts();
+      else if (subview === "astronaut" && selectedAstronaut) loadAstronautReport(selectedAstronaut.id);
+    } catch (e) { setError(e.message); }
+  };
+
+  useEffect(() => {
+    if (subview === "alerts") loadAlerts();
+    else if (subview === "summary" || subview === "astronaut") loadSummary();
+  }, [subview]);
+
+  const handleSelectAstronaut = (a) => {
+    setSelectedAstronaut(a);
+    setSubview("astronaut");
+    loadAstronautReport(a.id);
+  };
+
+  const sevColor = (s) => ({ critical: "#ef4444", high: "#f97316", medium: "#f59e0b", low: "#3b82f6" }[s] || "var(--text-dim)");
+
+  return (
+    <div style={{ display: "flex", flex: 1, overflow: "hidden", flexDirection: "column" }}>
+      {/* Sub-tabs */}
+      <div style={{ padding: "12px 24px", borderBottom: "1px solid var(--border)", display: "flex", gap: "6px", background: "rgba(8,13,26,0.6)", flexShrink: 0 }}>
+        {[
+          { id: "alerts", icon: Icons.alert, label: "Critical Alerts" },
+          { id: "summary", icon: Icons.users, label: "Crew Overview" },
+          { id: "astronaut", icon: Icons.activity, label: "Astronaut Report" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            className={`btn btn-sm ${subview === t.id ? "btn-primary" : "btn-ghost"}`}
+            style={subview === t.id ? { background: "rgba(15,244,198,0.12)", color: "var(--aurora-1)", border: "1px solid rgba(15,244,198,0.25)" } : {}}
+            onClick={() => setSubview(t.id)}
+          >
+            <Icon d={t.icon} size={13} />
+            {t.label}
+          </button>
+        ))}
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ marginLeft: "auto" }}
+          onClick={() => {
+            if (subview === "alerts") loadAlerts();
+            else if (subview === "astronaut" && selectedAstronaut) loadAstronautReport(selectedAstronaut.id);
+            else loadSummary();
+          }}
+          title="Refresh"
+        >
+          {loading ? <div className="loader" /> : <Icon d={Icons.refresh} size={14} />}
+        </button>
+      </div>
+
+      {error && <div className="error-msg" style={{ margin: "16px 24px 0" }}>{error}</div>}
+
+      {/* ── ALERTS VIEW ── */}
+      {subview === "alerts" && (
+        <div className="health-detail">
+          <div>
+            <div className="panel-title" style={{ fontSize: "18px" }}>
+              <Icon d={Icons.alert} size={18} style={{ display: "inline", verticalAlign: "middle", marginRight: "8px", color: "#ef4444" }} />
+              Critical & High Alerts
+            </div>
+            <div className="panel-sub">{alerts.length} active alert{alerts.length !== 1 ? "s" : ""} across all crew members</div>
+          </div>
+
+          {loading && alerts.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px", color: "var(--text-dim)" }}><div className="loader" style={{ margin: "0 auto" }} /></div>
+          ) : alerts.length === 0 ? (
+            <div className="empty-health">
+              <div className="empty-icon" style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                <Icon d={Icons.check} size={28} style={{ color: "var(--success)" }} />
+              </div>
+              <div style={{ fontSize: "16px", fontWeight: 500, color: "var(--text)" }}>All Clear</div>
+              <div style={{ fontSize: "13px" }}>No critical or high severity alerts at this time.</div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {alerts.map((a) => (
+                <div key={a.id}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                    <div className={`sev-${a.severity}`}>
+                      <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: sevColor(a.severity) }}>
+                        <Icon d={Icons.user} size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} />
+                        {a.astronaut_email}
+                      </span>
+                    </div>
+                  </div>
+                  <InsightCard insight={a} onDismiss={handleDismiss} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SUMMARY VIEW ── */}
+      {subview === "summary" && (
+        <div className="health-detail">
+          {summary && (
+            <>
+              <div>
+                <div className="panel-title" style={{ fontSize: "18px" }}>Crew Health Overview</div>
+                <div className="panel-sub">{summary.total_astronauts_monitored} crew member{summary.total_astronauts_monitored !== 1 ? "s" : ""} monitored</div>
+              </div>
+
+              <div className="stat-grid">
+                {[
+                  { label: "Monitored", value: summary.total_astronauts_monitored, sev: "none", icon: Icons.users },
+                  { label: "Critical", value: summary.critical_count, sev: "critical", icon: Icons.alert },
+                  { label: "High Risk", value: summary.high_count, sev: "high", icon: Icons.activity },
+                  { label: "Stable", value: summary.total_astronauts_monitored - summary.critical_count - summary.high_count, sev: "low", icon: Icons.check },
+                ].map((s) => (
+                  <div key={s.label} className={`stat-card sev-${s.sev}`}>
+                    <div className="stat-card-value">{s.value}</div>
+                    <div className="stat-card-label">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="card" style={{ padding: "0" }}>
+                <div className="card-title" style={{ padding: "16px 20px 0" }}>
+                  <Icon d={Icons.users} size={14} /> Crew Members by Risk
+                </div>
+                <div style={{ padding: "12px" }}>
+                  {summary.astronauts?.length === 0 ? (
+                    <div style={{ padding: "24px", textAlign: "center", color: "var(--text-dim)", fontSize: "13px" }}>No health data recorded yet.</div>
+                  ) : summary.astronauts?.map((a) => (
+                    <div
+                      key={a.astronaut_id}
+                      className={`astronaut-row sev-${a.overall_risk}`}
+                      onClick={() => handleSelectAstronaut({ id: a.astronaut_id, email: a.astronaut_email })}
+                    >
+                      <div className="astronaut-avatar sev-${a.overall_risk}">
+                        {a.astronaut_email[0].toUpperCase()}
+                      </div>
+                      <div className="astronaut-info">
+                        <div className="astronaut-email">{a.astronaut_email}</div>
+                        <div className="astronaut-sub">{a.total_insights} insight{a.total_insights !== 1 ? "s" : ""} · {a.latest_insight?.insight_type?.replace(/_/g, " ") || "—"}</div>
+                      </div>
+                      <div className="sev-counts">
+                        {a.severity_counts?.critical > 0 && <span className="sev-count-chip sev-critical">{a.severity_counts.critical}C</span>}
+                        {a.severity_counts?.high > 0 && <span className="sev-count-chip sev-high">{a.severity_counts.high}H</span>}
+                        {a.severity_counts?.medium > 0 && <span className="sev-count-chip sev-medium">{a.severity_counts.medium}M</span>}
+                      </div>
+                      <SevBadge severity={a.overall_risk} />
+                      <Icon d={Icons.chevron} size={14} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+          {loading && !summary && (
+            <div style={{ textAlign: "center", padding: "60px", color: "var(--text-dim)" }}><div className="loader" style={{ margin: "0 auto" }} /></div>
+          )}
+        </div>
+      )}
+
+      {/* ── ASTRONAUT REPORT VIEW ── */}
+      {subview === "astronaut" && (
+        <div className="health-layout">
+          {/* Left: astronaut picker */}
+          <div className="health-sidebar">
+            <div className="health-sidebar-header">
+              <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                Select Crew Member
+              </div>
+              {loading && astronauts.length === 0 ? (
+                <div className="loader" style={{ margin: "8px auto" }} />
+              ) : null}
+            </div>
+            <div className="health-astronaut-list">
+              {astronauts.map((a) => {
+                const astSum = summary?.astronauts?.find(s => s.astronaut_id === a.id);
+                const risk = astSum?.overall_risk || "none";
+                return (
+                  <div
+                    key={a.id}
+                    className={`astronaut-row sev-${risk} ${selectedAstronaut?.id === a.id ? "selected" : ""}`}
+                    onClick={() => handleSelectAstronaut(a)}
+                  >
+                    <div className="astronaut-avatar" style={{ borderColor: sevColor(risk), color: sevColor(risk) }}>
+                      {a.email[0].toUpperCase()}
+                    </div>
+                    <div className="astronaut-info">
+                      <div className="astronaut-email">{a.email}</div>
+                      {astSum && <div className="astronaut-sub">{astSum.total_insights} insight{astSum.total_insights !== 1 ? "s" : ""}</div>}
+                    </div>
+                    {astSum && <SevBadge severity={risk} />}
+                  </div>
+                );
+              })}
+              {astronauts.length === 0 && !loading && (
+                <div style={{ padding: "24px 16px", textAlign: "center", color: "var(--text-muted)", fontSize: "12px" }}>
+                  No crew members found.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: report detail */}
+          <div className="health-detail">
+            {!selectedAstronaut ? (
+              <div className="empty-health">
+                <div className="empty-icon">
+                  <Icon d={Icons.user} size={28} />
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: 500, color: "var(--text)" }}>Select a crew member</div>
+                <div style={{ fontSize: "13px" }}>Choose an astronaut from the list to view their full health report.</div>
+              </div>
+            ) : loading ? (
+              <div style={{ textAlign: "center", padding: "60px" }}><div className="loader" style={{ margin: "0 auto" }} /></div>
+            ) : astronautReport ? (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
+                  <div>
+                    <div className="panel-title" style={{ fontSize: "18px" }}>{astronautReport.astronaut_email}</div>
+                    <div className="panel-sub">{astronautReport.total_insights} insight{astronautReport.total_insights !== 1 ? "s" : ""} recorded</div>
+                  </div>
+                  <SevBadge severity={astronautReport.overall_risk} />
+                </div>
+
+                <div className="stat-grid">
+                  {[
+                    { label: "Critical", value: astronautReport.severity_counts?.critical || 0, sev: "critical" },
+                    { label: "High", value: astronautReport.severity_counts?.high || 0, sev: "high" },
+                    { label: "Medium", value: astronautReport.severity_counts?.medium || 0, sev: "medium" },
+                    { label: "Low", value: astronautReport.severity_counts?.low || 0, sev: "low" },
+                  ].map((s) => (
+                    <div key={s.label} className={`stat-card sev-${s.sev}`}>
+                      <div className="stat-card-value">{s.value}</div>
+                      <div className="stat-card-label">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {astronautReport.insights?.length === 0 ? (
+                  <div className="empty-health">
+                    <div style={{ fontSize: "13px" }}>No health insights recorded for this crew member yet.</div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      Insights — sorted by severity
+                    </div>
+                    {astronautReport.insights.map((ins) => (
+                      <InsightCard key={ins.id} insight={ins} onDismiss={handleDismiss} />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── ADMIN VIEW ────────────────────────────────────────────────────────────────
 function AdminView({ token, email }) {
   const [view, setView] = useState("documents");
@@ -1464,6 +2144,7 @@ function AdminView({ token, email }) {
   const [queryText, setQueryText] = useState("");
   const [queryResult, setQueryResult] = useState(null);
   const [querying, setQuerying] = useState(false);
+  const [alertCount, setAlertCount] = useState(null);
   const fileInputRef = useRef(null);
 
   const loadDocs = useCallback(async () => {
@@ -1473,6 +2154,13 @@ function AdminView({ token, email }) {
       setDocuments(data.documents || []);
     } catch { }
     setLoading(false);
+  }, [token]);
+
+  // Load alert badge count on mount
+  useEffect(() => {
+    apiFetch("/health/alerts?limit=100", {}, token)
+      .then((d) => setAlertCount(d.alerts?.length || 0))
+      .catch(() => { });
   }, [token]);
 
   useEffect(() => { if (view === "documents") loadDocs(); }, [view, loadDocs]);
@@ -1549,6 +2237,21 @@ function AdminView({ token, email }) {
               {item.badge !== undefined && <span className="badge-count">{item.badge}</span>}
             </button>
           ))}
+
+          <div className="divider" style={{ margin: "8px 0" }} />
+          <div className="nav-section-label">Crew Health</div>
+          <button
+            className={`nav-item ${view === "health" ? "active" : ""}`}
+            onClick={() => setView("health")}
+          >
+            <Icon d={Icons.heart} size={16} />
+            <span className="nav-item-label">Health Insights</span>
+            {alertCount !== null && alertCount > 0 && (
+              <span className="badge-count" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>
+                {alertCount}
+              </span>
+            )}
+          </button>
         </div>
 
         <div className="sidebar-footer">
@@ -1565,7 +2268,7 @@ function AdminView({ token, email }) {
       <div className="main">
         <div className="topbar">
           <span className="topbar-title">
-            {view === "documents" ? "Knowledge Base" : view === "upload" ? "Upload Document" : "RAG Query Test"}
+            {view === "documents" ? "Knowledge Base" : view === "upload" ? "Upload Document" : view === "health" ? "Crew Health Insights" : "RAG Query Test"}
           </span>
           {view === "documents" && (
             <button className="btn btn-ghost btn-sm" onClick={loadDocs}>
@@ -1574,159 +2277,163 @@ function AdminView({ token, email }) {
           )}
         </div>
 
-        <div className="panel-page">
-          {view === "documents" && (
-            <>
-              <div>
-                <div className="panel-title">Document Library</div>
-                <div className="panel-sub">{documents.length} documents · {indexed} indexed and ready</div>
-              </div>
-
-              <div className="card">
-                <div className="card-title"><Icon d={Icons.file} size={14} /> Indexed Files</div>
-                {documents.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "32px", color: "var(--text-dim)" }}>
-                    No documents yet. Upload files to populate the knowledge base.
-                  </div>
-                ) : (
-                  <table className="doc-table">
-                    <thead>
-                      <tr>
-                        <th>Filename</th>
-                        <th>Type</th>
-                        <th>Size</th>
-                        <th>Chunks</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {documents.map((doc) => (
-                        <tr key={doc.id}>
-                          <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>{doc.filename}</td>
-                          <td><span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-dim)" }}>{doc.file_type}</span></td>
-                          <td style={{ color: "var(--text-dim)", fontSize: "12px" }}>{fmtSize(doc.file_size)}</td>
-                          <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>{doc.chunk_count}</td>
-                          <td>
-                            <span className={`status-badge status-${doc.status}`}>
-                              <span className="status-dot" />
-                              {doc.status}
-                            </span>
-                          </td>
-                          <td style={{ color: "var(--text-dim)", fontSize: "12px" }}>{fmtDate(doc.created_at)}</td>
-                          <td>
-                            <button className="btn btn-icon btn-danger btn-sm" onClick={() => handleDelete(doc.id)} title="Delete">
-                              <Icon d={Icons.trash} size={13} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </>
-          )}
-
-          {view === "upload" && (
-            <div style={{ maxWidth: "580px" }}>
-              <div className="panel-title">Upload Document</div>
-              <div className="panel-sub">Supported: PDF, TXT, MD, DOCX, RST, CSV — max 50 MB</div>
-
-              <div className="card" style={{ marginTop: "20px" }}>
-                {uploadErr && <div className="error-msg">{uploadErr}</div>}
-                {uploadMsg && <div className="success-msg">{uploadMsg}</div>}
-
-                <div
-                  className={`upload-zone ${dragOver ? "drag" : ""}`}
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setDragOver(false);
-                    const file = e.dataTransfer.files[0];
-                    if (file) handleUpload(file);
-                  }}
-                >
-                  <div className="upload-zone-icon">
-                    {uploading ? <div className="loader" /> : <Icon d={Icons.upload} size={22} />}
-                  </div>
-                  <p>{uploading ? "Uploading…" : "Drop file here or click to browse"}</p>
-                  <span>.pdf .txt .md .docx .rst .csv</span>
+        {view === "health" ? (
+          <HealthInsightsView token={token} />
+        ) : (
+          <div className="panel-page">
+            {view === "documents" && (
+              <>
+                <div>
+                  <div className="panel-title">Document Library</div>
+                  <div className="panel-sub">{documents.length} documents · {indexed} indexed and ready</div>
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.txt,.md,.docx,.rst,.csv"
-                  style={{ display: "none" }}
-                  onChange={(e) => handleUpload(e.target.files[0])}
-                />
-              </div>
-            </div>
-          )}
 
-          {view === "query" && (
-            <div style={{ maxWidth: "720px" }}>
-              <div className="panel-title">RAG Query Tester</div>
-              <div className="panel-sub">Test direct queries against the knowledge base</div>
+                <div className="card">
+                  <div className="card-title"><Icon d={Icons.file} size={14} /> Indexed Files</div>
+                  {documents.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "32px", color: "var(--text-dim)" }}>
+                      No documents yet. Upload files to populate the knowledge base.
+                    </div>
+                  ) : (
+                    <table className="doc-table">
+                      <thead>
+                        <tr>
+                          <th>Filename</th>
+                          <th>Type</th>
+                          <th>Size</th>
+                          <th>Chunks</th>
+                          <th>Status</th>
+                          <th>Date</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {documents.map((doc) => (
+                          <tr key={doc.id}>
+                            <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>{doc.filename}</td>
+                            <td><span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-dim)" }}>{doc.file_type}</span></td>
+                            <td style={{ color: "var(--text-dim)", fontSize: "12px" }}>{fmtSize(doc.file_size)}</td>
+                            <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>{doc.chunk_count}</td>
+                            <td>
+                              <span className={`status-badge status-${doc.status}`}>
+                                <span className="status-dot" />
+                                {doc.status}
+                              </span>
+                            </td>
+                            <td style={{ color: "var(--text-dim)", fontSize: "12px" }}>{fmtDate(doc.created_at)}</td>
+                            <td>
+                              <button className="btn btn-icon btn-danger btn-sm" onClick={() => handleDelete(doc.id)} title="Delete">
+                                <Icon d={Icons.trash} size={13} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </>
+            )}
 
-              <div className="card" style={{ marginTop: "20px" }}>
-                <div className="card-title"><Icon d={Icons.zap} size={14} /> Ask the Knowledge Base</div>
-                <div className="search-bar" style={{ marginBottom: "12px" }}>
-                  <Icon d={Icons.search} size={16} style={{ color: "var(--text-dim)", flexShrink: 0 }} />
+            {view === "upload" && (
+              <div style={{ maxWidth: "580px" }}>
+                <div className="panel-title">Upload Document</div>
+                <div className="panel-sub">Supported: PDF, TXT, MD, DOCX, RST, CSV — max 50 MB</div>
+
+                <div className="card" style={{ marginTop: "20px" }}>
+                  {uploadErr && <div className="error-msg">{uploadErr}</div>}
+                  {uploadMsg && <div className="success-msg">{uploadMsg}</div>}
+
+                  <div
+                    className={`upload-zone ${dragOver ? "drag" : ""}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragOver(false);
+                      const file = e.dataTransfer.files[0];
+                      if (file) handleUpload(file);
+                    }}
+                  >
+                    <div className="upload-zone-icon">
+                      {uploading ? <div className="loader" /> : <Icon d={Icons.upload} size={22} />}
+                    </div>
+                    <p>{uploading ? "Uploading…" : "Drop file here or click to browse"}</p>
+                    <span>.pdf .txt .md .docx .rst .csv</span>
+                  </div>
                   <input
-                    className="search-input"
-                    placeholder="Enter your question…"
-                    value={queryText}
-                    onChange={(e) => setQueryText(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleQuery()}
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.txt,.md,.docx,.rst,.csv"
+                    style={{ display: "none" }}
+                    onChange={(e) => handleUpload(e.target.files[0])}
                   />
                 </div>
-                <button className="btn btn-primary" onClick={handleQuery} disabled={querying || !queryText.trim()}>
-                  {querying ? <><div className="loader" /> Querying…</> : <><Icon d={Icons.zap} size={14} /> Run Query</>}
-                </button>
-
-                {queryResult && (
-                  <div style={{ marginTop: "20px" }}>
-                    {queryResult.error ? (
-                      <div className="error-msg">{queryResult.error}</div>
-                    ) : (
-                      <>
-                        <div className="card-title" style={{ marginBottom: "10px" }}>Answer</div>
-                        <div style={{ background: "var(--surface)", borderRadius: "var(--r)", padding: "16px", fontSize: "14px", lineHeight: "1.7", color: "var(--text)", border: "1px solid var(--border)" }}>
-                          {queryResult.answer}
-                        </div>
-
-                        {queryResult.sources.length > 0 && (
-                          <div style={{ marginTop: "16px" }}>
-                            <div className="card-title" style={{ marginBottom: "10px" }}>Sources</div>
-                            {queryResult.sources.map((s, i) => (
-                              <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", padding: "12px", marginBottom: "8px" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                                  <span className="source-chip"><Icon d={Icons.file} size={10} />{s.filename}</span>
-                                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-dim)" }}>{Math.round(s.similarity * 100)}% match</span>
-                                </div>
-                                <div style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.5 }}>{s.excerpt}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="msg-timing" style={{ marginTop: "10px" }}>
-                          <span>⚡ {queryResult.timing.total_ms}ms total</span>
-                          <span>🔍 {queryResult.timing.search_ms}ms search</span>
-                          <span>🤖 {queryResult.timing.generate_ms}ms generation</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
               </div>
-            </div>
-          )}
-        </div>
+            )}
+
+            {view === "query" && (
+              <div style={{ maxWidth: "720px" }}>
+                <div className="panel-title">RAG Query Tester</div>
+                <div className="panel-sub">Test direct queries against the knowledge base</div>
+
+                <div className="card" style={{ marginTop: "20px" }}>
+                  <div className="card-title"><Icon d={Icons.zap} size={14} /> Ask the Knowledge Base</div>
+                  <div className="search-bar" style={{ marginBottom: "12px" }}>
+                    <Icon d={Icons.search} size={16} style={{ color: "var(--text-dim)", flexShrink: 0 }} />
+                    <input
+                      className="search-input"
+                      placeholder="Enter your question…"
+                      value={queryText}
+                      onChange={(e) => setQueryText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleQuery()}
+                    />
+                  </div>
+                  <button className="btn btn-primary" onClick={handleQuery} disabled={querying || !queryText.trim()}>
+                    {querying ? <><div className="loader" /> Querying…</> : <><Icon d={Icons.zap} size={14} /> Run Query</>}
+                  </button>
+
+                  {queryResult && (
+                    <div style={{ marginTop: "20px" }}>
+                      {queryResult.error ? (
+                        <div className="error-msg">{queryResult.error}</div>
+                      ) : (
+                        <>
+                          <div className="card-title" style={{ marginBottom: "10px" }}>Answer</div>
+                          <div style={{ background: "var(--surface)", borderRadius: "var(--r)", padding: "16px", fontSize: "14px", lineHeight: "1.7", color: "var(--text)", border: "1px solid var(--border)" }}>
+                            {queryResult.answer}
+                          </div>
+
+                          {queryResult.sources.length > 0 && (
+                            <div style={{ marginTop: "16px" }}>
+                              <div className="card-title" style={{ marginBottom: "10px" }}>Sources</div>
+                              {queryResult.sources.map((s, i) => (
+                                <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", padding: "12px", marginBottom: "8px" }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                                    <span className="source-chip"><Icon d={Icons.file} size={10} />{s.filename}</span>
+                                    <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-dim)" }}>{Math.round(s.similarity * 100)}% match</span>
+                                  </div>
+                                  <div style={{ fontSize: "12px", color: "var(--text-dim)", lineHeight: 1.5 }}>{s.excerpt}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="msg-timing" style={{ marginTop: "10px" }}>
+                            <span>⚡ {queryResult.timing.total_ms}ms total</span>
+                            <span>🔍 {queryResult.timing.search_ms}ms search</span>
+                            <span>🤖 {queryResult.timing.generate_ms}ms generation</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

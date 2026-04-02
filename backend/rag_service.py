@@ -36,7 +36,7 @@ logger = logging.getLogger("maitri.rag")
 # ── Gemini embedding config ───────────────────────────────────────────────────
 
 GEMINI_EMBED_MODEL = "models/gemini-embedding-001"
-EMBED_DIMS         = 3072    # fixed output dim for text-embedding-004
+EMBED_DIMS         = 3072    # fixed output dim for text-embedding-001
 EMBED_BATCH_SIZE   = 100    # Gemini allows up to 100 texts per batch_embed_contents call
 EMBED_RATE_LIMIT   = 1_500  # free-tier daily cap (requests/day); just for awareness
 _RETRY_DELAYS      = [1, 2, 4]  # seconds — exponential back-off on 429
@@ -65,23 +65,33 @@ def _configure_gemini() -> None:
 
 # ── Embedding helpers ─────────────────────────────────────────────────────────
 
+def _is_retryable(exc: Exception) -> bool:
+    """Check if a Gemini API error is transient and worth retrying."""
+    exc_str = str(exc).lower()
+    retryable_signals = ["429", "500", "502", "503", "504", "quota",
+                         "deadline", "unavailable", "resource_exhausted",
+                         "internal", "timeout"]
+    return any(sig in exc_str for sig in retryable_signals)
+
+
 def _embed_batch_sync(texts: List[str], task_type: str = "RETRIEVAL_DOCUMENT") -> List[List[float]]:
     """
     Call Gemini batch_embed_contents for up to 100 texts at once.
-    Retries up to 3 times on rate-limit (429) errors.
+    Retries up to 3 times on transient errors (429, 500, 502, 503, 504, timeouts).
     """
     _configure_gemini()
     last_exc: Exception | None = None
 
-    for delay in [0] + _RETRY_DELAYS:
+    for attempt, delay in enumerate([0] + _RETRY_DELAYS):
         if delay:
-            logger.warning("Gemini 429 — retrying in %ds …", delay)
+            logger.warning("Gemini transient error — retrying in %ds (attempt %d) …", delay, attempt + 1)
             time.sleep(delay)
         try:
             result = genai.embed_content(
                 model=GEMINI_EMBED_MODEL,
                 content=texts,
                 task_type=task_type,
+                request_options={"timeout": 120},  # 2-minute timeout
             )
             embeddings = result["embedding"]
             if isinstance(embeddings[0], float):
@@ -90,10 +100,13 @@ def _embed_batch_sync(texts: List[str], task_type: str = "RETRIEVAL_DOCUMENT") -
             return [list(e) for e in embeddings]
         except Exception as exc:
             last_exc = exc
-            if "429" not in str(exc) and "quota" not in str(exc).lower():
-                raise  # non-rate-limit error → surface immediately
+            if _is_retryable(exc):
+                logger.warning("Gemini embedding error (retryable): %s", exc)
+                continue  # retry
+            logger.error("Gemini embedding error (non-retryable): %s", exc)
+            raise  # permanent error → surface immediately
 
-    raise RuntimeError(f"Gemini embedding failed after retries: {last_exc}") from last_exc
+    raise RuntimeError(f"Gemini embedding failed after {len(_RETRY_DELAYS)+1} attempts: {last_exc}") from last_exc
 
 
 def embed_texts(texts: List[str]) -> List[List[float]]:
@@ -158,6 +171,7 @@ def embed_query(query: str) -> List[float]:
         model=GEMINI_EMBED_MODEL,
         content=query,
         task_type="RETRIEVAL_QUERY",
+        request_options={"timeout": 120},
     )
     emb = result["embedding"]
     # When content is a plain string, embedding is a flat list of floats
@@ -348,16 +362,21 @@ def _build_context_block(chunks: List[dict]) -> str:
     return "\n\n---\n\n".join(parts)
 
 
-def _call_groq(system: str, messages: List[dict], max_tokens: int = 1024) -> Tuple[str, int]:
+async def _call_groq(system: str, messages: List[dict], max_tokens: int = 1024) -> Tuple[str, int]:
+    """Call Groq LLM in a thread so we don't block the async event loop."""
     client = _groq_client()
     t0 = time.time()
-    resp = client.chat.completions.create(
-        model=settings.groq_model,
-        messages=[{"role": "system", "content": system}] + messages,
-        temperature=0.2,
-        max_tokens=max_tokens,
-        stream=False,
-    )
+
+    def _sync_call():
+        return client.chat.completions.create(
+            model=settings.groq_model,
+            messages=[{"role": "system", "content": system}] + messages,
+            temperature=0.2,
+            max_tokens=max_tokens,
+            stream=False,
+        )
+
+    resp = await asyncio.to_thread(_sync_call)
     return resp.choices[0].message.content, int((time.time() - t0) * 1000)
 
 
@@ -380,7 +399,7 @@ async def rag_query(
     search_ms = int((time.time() - t2) * 1000)
 
     context = _build_context_block(chunks) if chunks else "No relevant documents found."
-    answer, gen_ms = _call_groq(
+    answer, gen_ms = await _call_groq(
         _RAG_SYSTEM,
         [{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}],
     )
@@ -436,7 +455,7 @@ async def chat_with_rag(
         system = _CHAT_SYSTEM
 
     messages = list(conversation_history) + [{"role": "user", "content": user_message}]
-    response_text, gen_ms = _call_groq(system, messages)
+    response_text, gen_ms = await _call_groq(system, messages)
 
     total_ms = int((time.time() - t_total) * 1000)
     logger.info(
