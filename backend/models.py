@@ -97,3 +97,35 @@ class RAGQueryResponse(BaseModel):
     sources: List[RAGSource]
     timing: dict
     model: str
+
+
+class AudioAnalysisMetrics(BaseModel):
+    duration_sec: float
+    sample_rate_hz: int
+    rms_mean: float
+    zcr_mean: float
+    spectral_centroid_hz: float
+    spectral_rolloff_hz: float
+    estimated_tempo_bpm: float
+    estimated_pitch_hz: float
+    estimated_speech_rate_wpm: float
+    silence_ratio: float
+    clipping_ratio: float
+    quality_flags: List[str] = []
+
+
+class AudioRiskAssessment(BaseModel):
+    severity: str
+    state: str
+    risk_score: float
+    confidence: float
+    indicators: List[str] = []
+    recommended_action: str
+
+
+class AudioDetectionResponse(BaseModel):
+    filename: Optional[str] = None
+    content_type: Optional[str] = None
+    analysis: AudioAnalysisMetrics
+    risk: AudioRiskAssessment
+    notes: List[str] = []
