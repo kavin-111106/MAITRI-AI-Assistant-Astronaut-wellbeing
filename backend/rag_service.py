@@ -36,11 +36,15 @@ logger = logging.getLogger("maitri.rag")
 # ── Gemini embedding config ───────────────────────────────────────────────────
 
 GEMINI_EMBED_MODEL = "models/gemini-embedding-001"
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 EMBED_DIMS         = 3072    # fixed output dim for text-embedding-004
 =======
 EMBED_DIMS         = 3072    # fixed output dim for text-embedding-001
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+EMBED_DIMS         = 3072    # fixed output dim for text-embedding-001
+>>>>>>> Stashed changes
 EMBED_BATCH_SIZE   = 100    # Gemini allows up to 100 texts per batch_embed_contents call
 EMBED_RATE_LIMIT   = 1_500  # free-tier daily cap (requests/day); just for awareness
 _RETRY_DELAYS      = [1, 2, 4]  # seconds — exponential back-off on 429
@@ -69,6 +73,7 @@ def _configure_gemini() -> None:
 
 # ── Embedding helpers ─────────────────────────────────────────────────────────
 
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 def _embed_batch_sync(texts: List[str], task_type: str = "RETRIEVAL_DOCUMENT") -> List[List[float]]:
     """
@@ -89,10 +94,26 @@ def _embed_batch_sync(texts: List[str], task_type: str = "RETRIEVAL_DOCUMENT") -
     Call Gemini batch_embed_contents for up to 100 texts at once.
     Retries up to 3 times on transient errors (429, 500, 502, 503, 504, timeouts).
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+def _is_retryable(exc: Exception) -> bool:
+    """Check if a Gemini API error is transient and worth retrying."""
+    exc_str = str(exc).lower()
+    retryable_signals = ["429", "500", "502", "503", "504", "quota",
+                         "deadline", "unavailable", "resource_exhausted",
+                         "internal", "timeout"]
+    return any(sig in exc_str for sig in retryable_signals)
+
+
+def _embed_batch_sync(texts: List[str], task_type: str = "RETRIEVAL_DOCUMENT") -> List[List[float]]:
+    """
+    Call Gemini batch_embed_contents for up to 100 texts at once.
+    Retries up to 3 times on transient errors (429, 500, 502, 503, 504, timeouts).
+>>>>>>> Stashed changes
     """
     _configure_gemini()
     last_exc: Exception | None = None
 
+<<<<<<< Updated upstream
 <<<<<<< HEAD
     for delay in [0] + _RETRY_DELAYS:
         if delay:
@@ -102,16 +123,25 @@ def _embed_batch_sync(texts: List[str], task_type: str = "RETRIEVAL_DOCUMENT") -
         if delay:
             logger.warning("Gemini transient error — retrying in %ds (attempt %d) …", delay, attempt + 1)
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+    for attempt, delay in enumerate([0] + _RETRY_DELAYS):
+        if delay:
+            logger.warning("Gemini transient error — retrying in %ds (attempt %d) …", delay, attempt + 1)
+>>>>>>> Stashed changes
             time.sleep(delay)
         try:
             result = genai.embed_content(
                 model=GEMINI_EMBED_MODEL,
                 content=texts,
                 task_type=task_type,
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 =======
                 request_options={"timeout": 120},  # 2-minute timeout
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+                request_options={"timeout": 120},  # 2-minute timeout
+>>>>>>> Stashed changes
             )
             embeddings = result["embedding"]
             if isinstance(embeddings[0], float):
@@ -120,6 +150,7 @@ def _embed_batch_sync(texts: List[str], task_type: str = "RETRIEVAL_DOCUMENT") -
             return [list(e) for e in embeddings]
         except Exception as exc:
             last_exc = exc
+<<<<<<< Updated upstream
 <<<<<<< HEAD
             if "429" not in str(exc) and "quota" not in str(exc).lower():
                 raise  # non-rate-limit error → surface immediately
@@ -134,6 +165,15 @@ def _embed_batch_sync(texts: List[str], task_type: str = "RETRIEVAL_DOCUMENT") -
 
     raise RuntimeError(f"Gemini embedding failed after {len(_RETRY_DELAYS)+1} attempts: {last_exc}") from last_exc
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+            if _is_retryable(exc):
+                logger.warning("Gemini embedding error (retryable): %s", exc)
+                continue  # retry
+            logger.error("Gemini embedding error (non-retryable): %s", exc)
+            raise  # permanent error → surface immediately
+
+    raise RuntimeError(f"Gemini embedding failed after {len(_RETRY_DELAYS)+1} attempts: {last_exc}") from last_exc
+>>>>>>> Stashed changes
 
 
 def embed_texts(texts: List[str]) -> List[List[float]]:
@@ -198,10 +238,14 @@ def embed_query(query: str) -> List[float]:
         model=GEMINI_EMBED_MODEL,
         content=query,
         task_type="RETRIEVAL_QUERY",
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 =======
         request_options={"timeout": 120},
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+        request_options={"timeout": 120},
+>>>>>>> Stashed changes
     )
     emb = result["embedding"]
     # When content is a plain string, embedding is a flat list of floats
@@ -381,7 +425,16 @@ Rules:
 _CHAT_SYSTEM = """You are Maitri, a compassionate AI companion supporting astronauts.
 Your responses should be empathetic, supportive, and grounded in the knowledge base context below when relevant.
 If the context doesn't apply to the question, respond naturally from your role as a supportive companion.
-Never fabricate medical or technical information — admit uncertainty when needed."""
+Never fabricate medical or technical information — admit uncertainty when needed.CRITICAL OVERRIDE — CRISIS RESPONSE:
+If the astronaut expresses suicidal ideation, intent to self-harm, or says
+they are about to take their life, you MUST:
+1. Respond with warmth and presence — acknowledge their pain directly.
+2. Do NOT repeat a refusal. Do NOT copy-paste hotline numbers robotically.
+3. Say clearly: "I hear you. I am alerting mission control right now.
+   You are not alone. Please stay with me."
+4. Ask one simple grounding question to keep them engaged (e.g., "Can you
+   tell me where you are right now?").
+5. NEVER say "I cannot help you with that" in a crisis."""
 
 
 def _build_context_block(chunks: List[dict]) -> str:
@@ -392,6 +445,7 @@ def _build_context_block(chunks: List[dict]) -> str:
     return "\n\n---\n\n".join(parts)
 
 
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 def _call_groq(system: str, messages: List[dict], max_tokens: int = 1024) -> Tuple[str, int]:
     client = _groq_client()
@@ -408,6 +462,12 @@ async def _call_groq(system: str, messages: List[dict], max_tokens: int = 1024) 
     """Call Groq LLM in a thread so we don't block the async event loop."""
     client = _groq_client()
     t0 = time.time()
+=======
+async def _call_groq(system: str, messages: List[dict], max_tokens: int = 1024) -> Tuple[str, int]:
+    """Call Groq LLM in a thread so we don't block the async event loop."""
+    client = _groq_client()
+    t0 = time.time()
+>>>>>>> Stashed changes
 
     def _sync_call():
         return client.chat.completions.create(
@@ -419,7 +479,10 @@ async def _call_groq(system: str, messages: List[dict], max_tokens: int = 1024) 
         )
 
     resp = await asyncio.to_thread(_sync_call)
+<<<<<<< Updated upstream
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+>>>>>>> Stashed changes
     return resp.choices[0].message.content, int((time.time() - t0) * 1000)
 
 
@@ -442,11 +505,15 @@ async def rag_query(
     search_ms = int((time.time() - t2) * 1000)
 
     context = _build_context_block(chunks) if chunks else "No relevant documents found."
+<<<<<<< Updated upstream
 <<<<<<< HEAD
     answer, gen_ms = _call_groq(
 =======
     answer, gen_ms = await _call_groq(
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+    answer, gen_ms = await _call_groq(
+>>>>>>> Stashed changes
         _RAG_SYSTEM,
         [{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}],
     )
@@ -502,11 +569,15 @@ async def chat_with_rag(
         system = _CHAT_SYSTEM
 
     messages = list(conversation_history) + [{"role": "user", "content": user_message}]
+<<<<<<< Updated upstream
 <<<<<<< HEAD
     response_text, gen_ms = _call_groq(system, messages)
 =======
     response_text, gen_ms = await _call_groq(system, messages)
 >>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+    response_text, gen_ms = await _call_groq(system, messages)
+>>>>>>> Stashed changes
 
     total_ms = int((time.time() - t_total) * 1000)
     logger.info(
