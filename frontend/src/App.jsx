@@ -1580,6 +1580,10 @@ function ChatView({ token, email }) {
 
   const initials = email ? email[0].toUpperCase() : "A";
   const fmtTime = (d) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+<<<<<<< HEAD
+=======
+  const fmtSize = (b) => b > 1048576 ? `${(b / 1048576).toFixed(1)}MB` : `${(b / 1024).toFixed(0)}KB`;
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
 
   return (
     <>
@@ -1829,7 +1833,11 @@ function InsightCard({ insight, onDismiss }) {
 }
 
 function HealthInsightsView({ token }) {
+<<<<<<< HEAD
   const [subview, setSubview] = useState("alerts");
+=======
+  const [subview, setSubview] = useState("alerts"); // alerts | summary | astronaut
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
   const [alerts, setAlerts] = useState([]);
   const [summary, setSummary] = useState(null);
   const [astronauts, setAstronauts] = useState([]);
@@ -1872,6 +1880,10 @@ function HealthInsightsView({ token }) {
   const handleDismiss = async (insightId) => {
     try {
       await apiFetch(`/health/insights/${insightId}`, { method: "DELETE" }, token);
+<<<<<<< HEAD
+=======
+      // Refresh current view
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
       if (subview === "alerts") loadAlerts();
       else if (subview === "astronaut" && selectedAstronaut) loadAstronautReport(selectedAstronaut.id);
     } catch (e) { setError(e.message); }
@@ -1892,6 +1904,10 @@ function HealthInsightsView({ token }) {
 
   return (
     <div style={{ display: "flex", flex: 1, overflow: "hidden", flexDirection: "column" }}>
+<<<<<<< HEAD
+=======
+      {/* Sub-tabs */}
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
       <div style={{ padding: "12px 24px", borderBottom: "1px solid var(--border)", display: "flex", gap: "6px", background: "rgba(8,13,26,0.6)", flexShrink: 0 }}>
         {[
           { id: "alerts", icon: Icons.alert, label: "Critical Alerts" },
@@ -1924,6 +1940,10 @@ function HealthInsightsView({ token }) {
 
       {error && <div className="error-msg" style={{ margin: "16px 24px 0" }}>{error}</div>}
 
+<<<<<<< HEAD
+=======
+      {/* ── ALERTS VIEW ── */}
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
       {subview === "alerts" && (
         <div className="health-detail">
           <div>
@@ -1949,10 +1969,19 @@ function HealthInsightsView({ token }) {
               {alerts.map((a) => (
                 <div key={a.id}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+<<<<<<< HEAD
                     <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: sevColor(a.severity) }}>
                       <Icon d={Icons.user} size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} />
                       {a.astronaut_email}
                     </span>
+=======
+                    <div className={`sev-${a.severity}`}>
+                      <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: sevColor(a.severity) }}>
+                        <Icon d={Icons.user} size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} />
+                        {a.astronaut_email}
+                      </span>
+                    </div>
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
                   </div>
                   <InsightCard insight={a} onDismiss={handleDismiss} />
                 </div>
@@ -1962,6 +1991,10 @@ function HealthInsightsView({ token }) {
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* ── SUMMARY VIEW ── */}
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
       {subview === "summary" && (
         <div className="health-detail">
           {summary && (
@@ -1973,10 +2006,17 @@ function HealthInsightsView({ token }) {
 
               <div className="stat-grid">
                 {[
+<<<<<<< HEAD
                   { label: "Monitored", value: summary.total_astronauts_monitored, sev: "none" },
                   { label: "Critical", value: summary.critical_count, sev: "critical" },
                   { label: "High Risk", value: summary.high_count, sev: "high" },
                   { label: "Stable", value: summary.total_astronauts_monitored - summary.critical_count - summary.high_count, sev: "low" },
+=======
+                  { label: "Monitored", value: summary.total_astronauts_monitored, sev: "none", icon: Icons.users },
+                  { label: "Critical", value: summary.critical_count, sev: "critical", icon: Icons.alert },
+                  { label: "High Risk", value: summary.high_count, sev: "high", icon: Icons.activity },
+                  { label: "Stable", value: summary.total_astronauts_monitored - summary.critical_count - summary.high_count, sev: "low", icon: Icons.check },
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
                 ].map((s) => (
                   <div key={s.label} className={`stat-card sev-${s.sev}`}>
                     <div className="stat-card-value">{s.value}</div>
@@ -1998,7 +2038,11 @@ function HealthInsightsView({ token }) {
                       className={`astronaut-row sev-${a.overall_risk}`}
                       onClick={() => handleSelectAstronaut({ id: a.astronaut_id, email: a.astronaut_email })}
                     >
+<<<<<<< HEAD
                       <div className="astronaut-avatar">
+=======
+                      <div className="astronaut-avatar sev-${a.overall_risk}">
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
                         {a.astronaut_email[0].toUpperCase()}
                       </div>
                       <div className="astronaut-info">
@@ -2024,8 +2068,15 @@ function HealthInsightsView({ token }) {
         </div>
       )}
 
+<<<<<<< HEAD
       {subview === "astronaut" && (
         <div className="health-layout">
+=======
+      {/* ── ASTRONAUT REPORT VIEW ── */}
+      {subview === "astronaut" && (
+        <div className="health-layout">
+          {/* Left: astronaut picker */}
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
           <div className="health-sidebar">
             <div className="health-sidebar-header">
               <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
@@ -2064,6 +2115,10 @@ function HealthInsightsView({ token }) {
             </div>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Right: report detail */}
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
           <div className="health-detail">
             {!selectedAstronaut ? (
               <div className="empty-health">
@@ -2146,6 +2201,10 @@ function AdminView({ token, email }) {
     setLoading(false);
   }, [token]);
 
+<<<<<<< HEAD
+=======
+  // Load alert badge count on mount
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
   useEffect(() => {
     apiFetch("/health/alerts?limit=100", {}, token)
       .then((d) => setAlertCount(d.alerts?.length || 0))
@@ -2428,6 +2487,7 @@ function AdminView({ token, email }) {
   );
 }
 
+<<<<<<< HEAD
 // ─── STORAGE HELPERS ───────────────────────────────────────────────────────────
 const STORAGE_KEY = "maitri_auth";
 
@@ -2475,6 +2535,14 @@ export default function App() {
     clearAuthFromStorage();
     setAuth(null);
   };
+=======
+// ─── APP ROOT ──────────────────────────────────────────────────────────────────
+export default function App() {
+  const [auth, setAuth] = useState(null); // { token, role, email }
+
+  const handleLogin = (token, role, email) => setAuth({ token, role, email });
+  const handleLogout = () => setAuth(null);
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
 
   return (
     <>
