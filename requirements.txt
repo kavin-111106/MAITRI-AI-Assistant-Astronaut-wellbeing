@@ -53,7 +53,10 @@ Jinja2==3.1.6
 jiter==0.13.0
 joblib==1.5.3
 limits==5.8.0
+<<<<<<< HEAD
 librosa==0.10.2.post1
+=======
+>>>>>>> anbu/Backend
 llama-cloud==0.1.35
 llama-cloud-services==0.6.54
 llama-index==0.14.15
@@ -122,7 +125,10 @@ shellingham==1.5.4
 six==1.17.0
 slowapi==0.1.9
 sniffio==1.3.1
+<<<<<<< HEAD
 soundfile==0.12.1
+=======
+>>>>>>> anbu/Backend
 soupsieve==2.8.3
 SQLAlchemy==2.0.47
 sqlmodel==0.0.37
@@ -141,9 +147,16 @@ typing_extensions==4.15.0
 tzdata==2025.3
 urllib3==2.6.3
 uvicorn==0.41.0
+<<<<<<< HEAD
 uvloop==0.22.1; platform_system != "Windows"
+=======
+uvloop==0.22.1
+>>>>>>> anbu/Backend
 watchfiles==1.1.1
 websockets==16.0
 wrapt==1.17.3
 yarl==1.22.0
+<<<<<<< HEAD
 
+=======
+>>>>>>> anbu/Backend

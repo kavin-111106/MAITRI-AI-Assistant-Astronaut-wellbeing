@@ -5,7 +5,16 @@ from contextlib import asynccontextmanager
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from .rate_limiter import limiter
-from .router import auth, users, chat, admin, rag_router, health, audio
+<<<<<<< Updated upstream
+<<<<<<< HEAD
+from .router import auth, users, chat, admin,rag_router
+=======
+from .router import auth, users, chat, admin,rag_router,health
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+from .health_chat import router as health_chat_router
+from .router import auth, users, chat, admin,rag_router,health
+>>>>>>> Stashed changes
 import logging
 import time
 
@@ -74,11 +83,19 @@ async def log_requests(request: Request, call_next):
 
 app.include_router(users.router)
 app.include_router(auth.router)
-app.include_router(chat.router)
+# app.include_router(chat.router)
 app.include_router(admin.router)
 app.include_router(rag_router.router)
+<<<<<<< Updated upstream
+<<<<<<< HEAD
+
+=======
 app.include_router(health.router)
-app.include_router(audio.router)
+>>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+=======
+app.include_router(health.router)
+app.include_router(health_chat_router)
+>>>>>>> Stashed changes
 
 @app.get("/")
 def root():
@@ -86,7 +103,7 @@ def root():
 
 
 @app.get("/health")
-def health():
+def health_check():
     from .config import settings
     from .rag_service import GEMINI_EMBED_MODEL
     return {
