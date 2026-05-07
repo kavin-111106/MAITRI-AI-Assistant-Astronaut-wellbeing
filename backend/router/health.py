@@ -19,13 +19,8 @@ router = APIRouter(prefix="/api/v1/health", tags=["Health Reports"])
 
 @router.get("/alerts")
 async def critical_alerts(
-<<<<<<< HEAD
     db: session_object,
     limit: int = 20,
-=======
-    limit: int = 20,
-    db: session_object = None,
->>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
     admin: Admin = Depends(get_current_admin),
 ):
     """
@@ -41,11 +36,7 @@ async def critical_alerts(
 
 @router.get("/summary")
 async def all_astronauts_summary(
-<<<<<<< HEAD
     db: session_object,
-=======
-    db: session_object = None,
->>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
     admin: Admin = Depends(get_current_admin),
 ):
     """
@@ -58,13 +49,9 @@ async def all_astronauts_summary(
 @router.get("/astronaut/{astronaut_id}")
 async def astronaut_report(
     astronaut_id: int,
-<<<<<<< HEAD
     db: session_object,
     limit: int = 50,
-=======
-    limit: int = 50,
-    db: session_object = None,
->>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+
     admin: Admin = Depends(get_current_admin),
 ):
     """
@@ -83,11 +70,7 @@ async def astronaut_report(
 @router.delete("/insights/{insight_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def dismiss_insight(
     insight_id: int,
-<<<<<<< HEAD
     db: session_object,
-=======
-    db: session_object = None,
->>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
     admin: Admin = Depends(get_current_admin),
 ):
     """
@@ -105,11 +88,7 @@ async def dismiss_insight(
 
 @router.get("/astronauts")
 async def list_astronauts(
-<<<<<<< HEAD
     db: session_object,
-=======
-    db: session_object = None,
->>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
     admin: Admin = Depends(get_current_admin),
 ):
     """List all registered astronauts with their IDs — useful for building the report UI."""

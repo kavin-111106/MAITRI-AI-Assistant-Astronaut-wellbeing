@@ -28,22 +28,18 @@ class _SignalProfile:
 
 
 async def analyze_audio_upload(file: UploadFile, astronaut_id: int | None = None) -> dict:
-    """
-    End-to-end audio detection:
-    - validates file
-    - decodes waveform
-    - extracts acoustic features
-    - computes heuristic risk/stress classification
-    """
     _validate_audio_file(file)
-
     raw_bytes = await file.read()
     if not raw_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Uploaded audio file is empty",
-        )
+        raise HTTPException(status_code=400, detail="Uploaded audio file is empty")
 
+    import asyncio
+    result = await asyncio.to_thread(_analyze_blocking, raw_bytes, file.filename, file.content_type, astronaut_id)
+    return result
+
+
+def _analyze_blocking(raw_bytes: bytes, filename: str, content_type: str, astronaut_id: int | None) -> dict:
+    """Pure sync function — safe to run in threadpool."""
     target_sr = 16000
     y, sr = _decode_audio(raw_bytes, target_sr=target_sr)
     signal = _extract_signal_profile(y=y, sr=sr)
@@ -52,16 +48,12 @@ async def analyze_audio_upload(file: UploadFile, astronaut_id: int | None = None
 
     logger.info(
         "Audio analyzed astronaut:%s file:%s duration:%.2fs risk:%s score:%.2f",
-        astronaut_id,
-        file.filename,
-        signal.duration_sec,
-        risk["severity"],
-        risk["risk_score"],
+        astronaut_id, filename, signal.duration_sec, risk["severity"], risk["risk_score"],
     )
 
     return {
-        "filename": file.filename,
-        "content_type": file.content_type,
+        "filename": filename,
+        "content_type": content_type,
         "analysis": {
             "duration_sec": round(signal.duration_sec, 3),
             "sample_rate_hz": signal.sample_rate_hz,
@@ -94,6 +86,9 @@ def _validate_audio_file(file: UploadFile) -> None:
         "audio/x-m4a",
         "audio/mp4",
         "audio/flac",
+        "audio/webm",
+        "audio/vnd.wave", 
+        "audio/wave", 
     }
 
     if file.content_type and file.content_type.lower() not in allowed:
@@ -111,15 +106,43 @@ def _decode_audio(raw_bytes: bytes, target_sr: int = 16000) -> tuple[np.ndarray,
             raise ValueError("Decoded empty audio")
         return y, sr
     except Exception:
-        # Deterministic fallback (PCM-compatible containers).
-        try:
-            audio, sr = sf.read(BytesIO(raw_bytes), always_2d=False)
-        except Exception as exc:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to decode audio file. Provide a valid WAV/MP3/OGG/M4A file.",
-            ) from exc
+        pass
 
+    # 2. Try soundfile (good for FLAC/OGG)
+    try:
+        audio, sr = sf.read(BytesIO(raw_bytes), always_2d=False)
+        if isinstance(audio, np.ndarray) and audio.ndim > 1:
+            audio = np.mean(audio, axis=1)
+        y = np.asarray(audio, dtype=np.float32)
+        if y.size == 0:
+            raise ValueError("Empty audio")
+        if sr != target_sr:
+            y = librosa.resample(y, orig_sr=sr, target_sr=target_sr)
+        return y, target_sr
+    except Exception:
+        pass
+
+    # 3. Fallback: pydub + ffmpeg (handles WebM/Opus, M4A, etc.)
+    try:
+        from pydub import AudioSegment
+        seg = AudioSegment.from_file(BytesIO(raw_bytes))
+        # Convert to mono, set sample rate
+        seg = seg.set_channels(1).set_frame_rate(target_sr)
+        # Export to raw PCM WAV in memory
+        buf = BytesIO()
+        seg.export(buf, format="wav")
+        buf.seek(0)
+        y, sr = sf.read(buf, always_2d=False)
+        y = np.asarray(y, dtype=np.float32)
+        if y.size == 0:
+            raise ValueError("Empty after pydub conversion")
+        return y, target_sr
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to decode audio file. Provide a valid WAV/MP3/OGG/M4A file.",
+        ) from exc
+    
         if isinstance(audio, np.ndarray) and audio.ndim > 1:
             audio = np.mean(audio, axis=1)
         y = np.asarray(audio, dtype=np.float32)

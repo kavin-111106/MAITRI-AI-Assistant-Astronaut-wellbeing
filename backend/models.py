@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
@@ -97,3 +97,10 @@ class RAGQueryResponse(BaseModel):
     sources: List[RAGSource]
     timing: dict
     model: str
+
+class AudioDetectionResponse(BaseModel):
+    filename: str | None
+    content_type: str | None
+    analysis: dict[str, Any]
+    risk: dict[str, Any]
+    notes: list[str]

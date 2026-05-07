@@ -1,5 +1,4 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Request
-<<<<<<< HEAD
 from .database import session_object, Astronaut, Conversation
 from .oauth2 import get_current_user
 from .chat_service import ChatService
@@ -7,15 +6,6 @@ from .rag_service import chat_with_rag
 from .models import ChatRequest, ChatResponse
 from .rate_limiter import limiter
 from .config import settings
-=======
-from ..database import session_object, Astronaut, Conversation
-from ..oauth2 import get_current_user
-from ..chat_service import ChatService
-from ..rag_service import chat_with_rag
-from ..models import ChatRequest, ChatResponse
-from ..rate_limiter import limiter
-from ..config import settings
->>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
 import logging
 
 logger = logging.getLogger("maitri.chat")
@@ -36,11 +26,8 @@ async def _run_health_analysis(
     """
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
     from sqlmodel.ext.asyncio.session import AsyncSession
-<<<<<<< HEAD
     from .health_service import analyze_message
-=======
-    from ..health_service import analyze_message
->>>>>>> b8f98e421e932b3269e17058d0625adfd87e15d1
+
 
     engine = create_async_engine(db_url, echo=False)
     SessionFactory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
