@@ -6,7 +6,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from .rate_limiter import limiter
 from .health_chat import router as health_chat_router
-from .router import auth, users, chat, admin,rag_router,health,audio
+from .router import auth, users, chat, admin,rag_router,health,audio,video
 import logging
 import time
 
@@ -21,6 +21,12 @@ logger = logging.getLogger("maitri")
 async def lifespan(app: FastAPI):
     logger.info("Maitri backend starting up...")
 
+    try:
+        from .video_detection import _load_model_at_startup
+        _load_model_at_startup()
+    except Exception as e:
+        logger.warning(f"Video emotion model pre-load failed: {e}")
+        
     # Verify Gemini embedding SDK is configured
     try:
         from .rag_service import _configure_gemini, GEMINI_EMBED_MODEL
@@ -82,6 +88,7 @@ app.include_router(health.router)
 app.include_router(health.router)
 app.include_router(health_chat_router)
 app.include_router(audio.router)
+app.include_router(video.router)
 
 @app.get("/")
 def root():

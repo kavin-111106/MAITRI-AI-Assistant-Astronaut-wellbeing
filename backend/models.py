@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
@@ -104,3 +104,68 @@ class AudioDetectionResponse(BaseModel):
     analysis: dict[str, Any]
     risk: dict[str, Any]
     notes: list[str]
+
+
+class EmotionDistribution(BaseModel):
+    count: int
+    percentage: float
+
+
+class BBox(BaseModel):
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+class PrimaryEmotion(BaseModel):
+    label: str
+    confidence: float
+
+
+class Top3Emotion(BaseModel):
+    label: str
+    confidence: float
+
+
+class FaceDetection(BaseModel):
+    bbox: BBox
+    primary_emotion: PrimaryEmotion
+    all_emotions: Dict[str, float]
+    top_3: List[Top3Emotion]
+
+
+class FrameResult(BaseModel):
+    frame_number: int
+    timestamp_seconds: float
+    faces_detected: int
+    detections: List[FaceDetection]
+
+
+class VideoAnalysis(BaseModel):
+    duration_sec: float
+    fps: float
+    total_frames: int
+    frames_processed: int
+    sample_rate: int
+    total_faces_detected: int
+    dominant_emotion: Optional[str]
+    emotion_distribution: Dict[str, EmotionDistribution]
+
+
+class RiskAssessment(BaseModel):
+    severity: str
+    state: str
+    risk_score: float
+    confidence: float
+    indicators: List[str]
+    recommended_action: str
+
+
+class VideoDetectionResponse(BaseModel):
+    filename: str
+    content_type: str
+    analysis: VideoAnalysis
+    frames: List[FrameResult]
+    risk: RiskAssessment
+    notes: List[str]

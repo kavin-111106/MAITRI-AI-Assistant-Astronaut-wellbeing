@@ -45,6 +45,7 @@ const Icons = {
   mic: "M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8",
   micOff: "M1 1l22 22M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23M12 19v4M8 23h8",
   waveform: "M22 12h-4l-3 9L9 3l-3 9H2",
+  video: "M23 7l-7 5 7 5V7zM2 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z", // added video icon
 };
 
 // ─── STARFIELD BACKGROUND ──────────────────────────────────────────────────────
@@ -103,7 +104,7 @@ const css = `
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 99px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--aurora-2); }
-  .app { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; }
+  .app { position: relative; zIndex: 1; height: 100vh; display: flex; flex-direction: column; }
 
   /* ── AUTH ── */
   .auth-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; gap: 48px; }
@@ -219,27 +220,34 @@ const css = `
   @keyframes micPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
   .rec-timer { font-size: 11px; font-family: var(--font-mono); color: #ef4444; min-width: 32px; text-align: center; letter-spacing: 0.04em; }
 
- /* ── SENSOR HUD POSITIONING ── */
+  /* ── MEDIA HUD (Audio + Video) ── */
+  .media-hud {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+    align-items: flex-end;
+    max-width: 340px;
+  }
+  .media-hud > * { pointer-events: all; }
+
+ /* ── SENSOR HUD ── */
 .sensor-hud {
-  position: fixed;
-  bottom: 100px;
-  right: 20px;
-  z-index: 1000;
   display: flex;
   flex-direction: column;
   gap: 10px;
   pointer-events: none;
 }
-
-.sensor-hud > * {
-  pointer-events: all;
-}
+.sensor-hud > * { pointer-events: all; }
 
 /* ── PULSING BUTTON ── */
 .pulsing {
   animation: btnPulse 1.5s ease-in-out infinite;
 }
-
 @keyframes btnPulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
   50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
@@ -259,13 +267,11 @@ const css = `
   color: var(--aurora-1);
   transition: all 0.3s;
 }
-
 .vad-indicator.speaking {
   background: rgba(239,68,68,0.08);
   border-color: rgba(239,68,68,0.25);
   color: #ef4444;
 }
-
 .vad-dot {
   width: 6px;
   height: 6px;
@@ -273,11 +279,199 @@ const css = `
   background: currentColor;
   animation: pulse-dot 1.5s infinite;
 }
-
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+  /* ── VIDEO HUD ── */
+  .video-hud {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    align-items: flex-end;
+  }
+  .video-hud > * { pointer-events: all; }
+  .video-preview-card {
+    width: 260px;
+    height: 195px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .video-preview-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  .video-recording-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(239,68,68,0.9);
+    border-radius: 99px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: #fff;
+    font-weight: 600;
+  }
+  .video-rec-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    animation: pulse-dot 1s infinite;
+  }
+  .video-controls {
+    background: rgba(8,13,26,0.95);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+  }
+
+  /* ── VIDEO RESULT CARD ── */
+  .video-result-card {
+    width: 300px;
+    background: rgba(8,13,26,0.95);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 16px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    animation: slideInRight 0.3s ease;
+  }
+  .video-result-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .video-result-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+  .video-severity-badge {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+  .video-sev-critical { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+  .video-sev-high { background: rgba(249,115,22,0.12); color: #f97316; border: 1px solid rgba(249,115,22,0.25); }
+  .video-sev-medium { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
+  .video-sev-low { background: rgba(59,130,246,0.12); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); }
+  .video-sev-none { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+  .video-sev-unknown { background: rgba(100,116,139,0.12); color: #64748b; border: 1px solid rgba(100,116,139,0.2); }
+  .video-score-bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .video-score-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+  }
+  .video-emotion-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 10px 0;
+  }
+  .video-emotion-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .video-emotion-label {
+    width: 60px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-transform: capitalize;
+    flex-shrink: 0;
+  }
+  .video-emotion-track {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .video-emotion-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+  .video-emotion-pct {
+    width: 32px;
+    text-align: right;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+  .video-indicators {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0;
+  }
+  .video-indicator-chip {
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+  }
+  .video-action {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(15,244,198,0.04);
+    border: 1px solid rgba(15,244,198,0.1);
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--aurora-1);
+    line-height: 1.5;
+    margin: 8px 0;
+  }
+  .video-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: none; }
+  }
+
   /* ── ADMIN PANEL ── */
   .panel-page { flex: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
   .panel-title { font-size: 22px; font-weight: 600; color: #fff; }
@@ -314,7 +508,7 @@ const css = `
   @keyframes spin { to { transform: rotate(360deg); } }
   .admin-auth-toggle { text-align: center; margin-top: 16px; font-size: 12px; color: var(--text-dim); }
   .admin-auth-toggle button { background: none; border: none; color: var(--aurora-1); cursor: pointer; font-family: var(--font-ui); font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
-  @media (max-width: 768px) { .auth-hero { display: none; } .auth-card { width: 100%; max-width: 400px; } .sidebar { width: 200px; } }
+  @media (max-width: 768px) { .auth-hero { display: none; } .auth-card { width: 100%; max-width: 400px; } .sidebar { width: 200px; } .media-hud { right: 10px; bottom: 10px; } }
   .sev-critical { --sev-color: #ef4444; --sev-bg: rgba(239,68,68,0.08); --sev-border: rgba(239,68,68,0.25); }
   .sev-high { --sev-color: #f97316; --sev-bg: rgba(249,115,22,0.08); --sev-border: rgba(249,115,22,0.25); }
   .sev-medium { --sev-color: #f59e0b; --sev-bg: rgba(245,158,11,0.08); --sev-border: rgba(245,158,11,0.2); }
@@ -456,6 +650,359 @@ function AuthPage({ onLogin }) {
           }
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── VIDEO RESULT CARD ─────────────────────────────────────────────────────────
+function VideoResultCard({ result, onClose }) {
+  if (!result) return null;
+  const { risk, analysis } = result;
+  const sev = risk?.severity || "none";
+
+  const scoreColor = (score) => {
+    if (score >= 0.8) return "#ef4444";
+    if (score >= 0.6) return "#f97316";
+    if (score >= 0.35) return "#f59e0b";
+    if (score >= 0.18) return "#3b82f6";
+    return "#10b981";
+  };
+
+  const emotionColor = (emotion) => {
+    const map = {
+      angry: "#ef4444", disgust: "#f97316", fear: "#f59e0b",
+      happy: "#10b981", neutral: "#64748b", sad: "#3b82f6", surprise: "#8b5cf6"
+    };
+    return map[emotion] || "#64748b";
+  };
+
+  return (
+    <div className="video-result-card">
+      <div className="video-result-header">
+        <Icon d={Icons.activity} size={13} style={{ color: "var(--aurora-1)", flexShrink: 0 }} />
+        <span className="video-result-title">Video Analysis</span>
+        <span className={`video-severity-badge video-sev-${sev}`}>{sev}</span>
+        <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "2px", display: "flex", alignItems: "center" }}>
+          <Icon d={Icons.x} size={13} />
+        </button>
+      </div>
+
+      <div className="video-score-bar-track">
+        <div className="video-score-bar-fill" style={{
+          width: `${Math.round((risk?.risk_score || 0) * 100)}%`,
+          background: `linear-gradient(90deg, ${scoreColor(risk?.risk_score || 0)}aa, ${scoreColor(risk?.risk_score || 0)})`
+        }} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+        <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>Risk score</span>
+        <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: scoreColor(risk?.risk_score || 0), fontWeight: 600 }}>
+          {Math.round((risk?.risk_score || 0) * 100)}%
+        </span>
+      </div>
+
+      {analysis?.dominant_emotion && (
+        <div style={{ fontSize: "12px", color: "var(--text-dim)", marginBottom: "10px" }}>
+          Dominant emotion: <strong style={{ color: emotionColor(analysis.dominant_emotion) }}>{analysis.dominant_emotion}</strong>
+        </div>
+      )}
+
+      {analysis?.emotion_distribution && (
+        <div className="video-emotion-bars">
+          {Object.entries(analysis.emotion_distribution)
+            .sort((a, b) => (b[1].percentage || 0) - (a[1].percentage || 0))
+            .map(([emotion, data]) => (
+              <div key={emotion} className="video-emotion-row">
+                <span className="video-emotion-label">{emotion}</span>
+                <div className="video-emotion-track">
+                  <div className="video-emotion-fill" style={{
+                    width: `${data.percentage}%`,
+                    background: emotionColor(emotion)
+                  }} />
+                </div>
+                <span className="video-emotion-pct">{data.percentage}%</span>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {risk?.indicators?.length > 0 && (
+        <div className="video-indicators">
+          {risk.indicators.map((ind, i) => <span key={i} className="video-indicator-chip">{ind}</span>)}
+        </div>
+      )}
+
+      {risk?.recommended_action && risk.recommended_action !== "No action required." && (
+        <div className="video-action">
+          <Icon d={Icons.zap} size={12} style={{ flexShrink: 0, marginTop: "1px" }} />
+          {risk.recommended_action}
+        </div>
+      )}
+
+      <div className="video-meta">
+        <span>⏱ {analysis?.duration_sec?.toFixed(1)}s</span>
+        <span>🎬 {analysis?.frames_processed} frames</span>
+        <span>👤 {analysis?.total_faces_detected} faces</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── VIDEO OVERLAY ─────────────────────────────────────────────────────────────
+function VideoOverlay({ token, isAstronaut, onNewVideoResponse }) {
+  if (!isAstronaut) return null;
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [recDuration, setRecDuration] = useState(0);
+  const [videoAnalysis, setVideoAnalysis] = useState(null);
+  const [processing, setProcessing] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+
+  const videoRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const timerRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const openCamera = async () => {
+    setCameraError(null);
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+        audio: false
+      });
+      streamRef.current = s;
+      setShowPreview(true);
+      requestAnimationFrame(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+          videoRef.current.play().catch(() => { });
+        }
+      });
+    } catch (err) {
+      setCameraError(err.message || "Could not access camera");
+      setShowPreview(false);
+      streamRef.current = null;
+    }
+  };
+
+  const closeCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+    }
+    clearInterval(timerRef.current);
+    streamRef.current = null;
+    setShowPreview(false);
+    setIsRecording(false);
+    setRecDuration(0);
+    setCameraError(null);
+    chunksRef.current = [];
+    mediaRecorderRef.current = null;
+  };
+
+  const startRecording = () => {
+    const s = streamRef.current;
+    if (!s) {
+      alert("ERROR: No stream!");
+      return;
+    }
+
+    const tracks = s.getVideoTracks();
+    if (tracks.length === 0 || tracks[0].readyState !== 'live') {
+      alert("ERROR: Video track not live!");
+      return;
+    }
+
+    let mediaRecorder;
+    try {
+      mediaRecorder = new MediaRecorder(s);
+      alert("MediaRecorder created: " + mediaRecorder.mimeType);
+    } catch (err) {
+      alert("MediaRecorder failed: " + err.message);
+      return;
+    }
+
+    chunksRef.current = [];
+    mediaRecorderRef.current = mediaRecorder;
+
+    mediaRecorder.ondataavailable = (event) => {
+      console.log("[ondataavailable] size:", event.data?.size || 0);
+      if (event.data && event.data.size > 0) {
+        chunksRef.current.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      console.log("[onstop] chunks:", chunksRef.current.length);
+      clearInterval(timerRef.current);
+
+      const actualMimeType = mediaRecorder.mimeType || 'video/webm';
+      const finalBlob = new Blob(chunksRef.current, { type: actualMimeType });
+
+      console.log("[onstop] Blob:", {
+        size: finalBlob.size,
+        type: finalBlob.type,
+        chunks: chunksRef.current.length,
+        chunkSizes: chunksRef.current.map(c => c.size)
+      });
+
+      alert("Stopped! Blob size: " + finalBlob.size);
+
+      if (finalBlob.size < 100) {
+        setCameraError("Recording too short. Record 3+ seconds.");
+        closeCamera();
+        return;
+      }
+
+      await sendVideo(finalBlob, actualMimeType);
+      closeCamera();
+    };
+
+    mediaRecorder.onerror = (e) => {
+      alert("Recorder error: " + (e.message || "unknown"));
+      setIsRecording(false);
+    };
+
+    try {
+      mediaRecorder.start();
+      alert("Recording STARTED! State: " + mediaRecorder.state);
+      setIsRecording(true);
+      setRecDuration(0);
+      timerRef.current = setInterval(() => setRecDuration(d => d + 1), 1000);
+    } catch (err) {
+      alert("Start failed: " + err.message);
+    }
+  };
+
+  const stopRecording = () => {
+    const mr = mediaRecorderRef.current;
+    if (mr && mr.state === "recording") {
+      mr.stop();
+    } else {
+      closeCamera();
+    }
+  };
+
+  const sendVideo = async (blob, blobType) => {
+    alert("sendVideo! size=" + blob.size);
+    setProcessing(true);
+    setCameraError(null);
+
+    const ext = blobType.includes('mp4') ? 'mp4' : 'webm';
+    const formData = new FormData();
+    formData.append("file", blob, `astronaut_video.${ext}`);
+
+    try {
+      const res = await fetch(`${API}/video/detect-and-chat`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || `Server error ${res.status}`);
+      }
+
+      const data = await res.json();
+      setVideoAnalysis(data);
+      if (onNewVideoResponse) onNewVideoResponse(data);
+    } catch (err) {
+      alert("Upload failed: " + err.message);
+      setCameraError("Upload failed: " + err.message);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const fmtDuration = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+  return (
+    <div className="video-hud">
+      {showPreview && (
+        <div className="video-preview-card">
+          <video ref={videoRef} autoPlay muted playsInline className="video-preview-video" />
+          {isRecording && (
+            <div className="video-recording-badge">
+              <div className="video-rec-dot" />
+              REC {fmtDuration(recDuration)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {cameraError && (
+        <div style={{
+          background: "rgba(239,68,68,0.12)",
+          border: "1px solid rgba(239,68,68,0.3)",
+          borderRadius: "10px",
+          padding: "10px 14px",
+          color: "#f87171",
+          fontSize: "12px",
+          maxWidth: "260px"
+        }}>
+          {cameraError}
+        </div>
+      )}
+
+      <div className="video-controls">
+        {!showPreview ? (
+          <button className="btn btn-primary btn-sm" onClick={openCamera} disabled={processing}>
+            <Icon d={Icons.video} size={14} /> Start Video Check-in
+          </button>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div className={`vad-indicator ${isRecording ? "speaking" : ""}`}>
+              <div className="vad-dot" />
+              {isRecording ? `Recording ${fmtDuration(recDuration)}` : "Camera On"}
+            </div>
+
+            {!isRecording ? (
+              <>
+                <button className="btn btn-primary btn-sm" onClick={startRecording}>
+                  <Icon d={Icons.video} size={14} /> Record
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={closeCamera}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="btn btn-danger btn-sm pulsing" onClick={stopRecording}>
+                  <Icon d={Icons.x} size={14} /> Stop
+                </button>
+                <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
+                  {fmtDuration(recDuration)}
+                </span>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {processing && (
+        <div style={{
+          background: "rgba(8,13,26,0.95)",
+          border: "1px solid var(--border)",
+          borderRadius: "10px",
+          padding: "12px 16px",
+          color: "var(--aurora-1)",
+          fontSize: "13px",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px"
+        }}>
+          <div className="loader" style={{ width: "16px", height: "16px" }} />
+          Analyzing facial emotions…
+        </div>
+      )}
+
+      {videoAnalysis && (
+        <VideoResultCard
+          result={videoAnalysis.video_analysis}
+          onClose={() => setVideoAnalysis(null)}
+        />
+      )}
     </div>
   );
 }
@@ -698,7 +1245,7 @@ const PROMPTS = [
   "I need to talk about how I'm feeling",
 ];
 
-function ChatView({ token, email, externalVoiceResponse, onVoiceConsumed }) {
+function ChatView({ token, email, externalVoiceResponse, onVoiceConsumed, externalVideoResponse, onVideoConsumed }) {
   const [conversations, setConversations] = useState([]);
   const [activeConvId, setActiveConvId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -767,6 +1314,47 @@ function ChatView({ token, email, externalVoiceResponse, onVoiceConsumed }) {
 
     onVoiceConsumed(); // Reset external state
   }, [externalVoiceResponse, activeConvId, loadConversations, onVoiceConsumed]);
+
+  // ── Handle external video responses from VideoOverlay ──
+  useEffect(() => {
+    if (!externalVideoResponse) return;
+
+    const data = externalVideoResponse;
+    const analysis = data.video_analysis?.analysis;
+    const risk = data.video_analysis?.risk;
+
+    // Add user video message
+    const userMsg = {
+      id: Date.now() - 1,
+      role: "user",
+      content: `[Video Emotional State: ${analysis?.dominant_emotion || 'unknown'}]`,
+      created_at: new Date().toISOString(),
+      metadata: {
+        is_video: true,
+        video_analysis: data.video_analysis,
+        dominant_emotion: analysis?.dominant_emotion,
+        severity: risk?.severity
+      }
+    };
+
+    // Add AI response message
+    const aiMsg = {
+      id: Date.now(),
+      role: "assistant",
+      content: data.assistant_response || "I received your video check-in. I'm here to support you.",
+      created_at: new Date().toISOString(),
+      sources: data.sources,
+    };
+
+    setMessages(prev => [...prev, userMsg, aiMsg]);
+
+    if (!activeConvId && data.conversation_id) {
+      setActiveConvId(data.conversation_id);
+      loadConversations();
+    }
+
+    setTimeout(onVideoConsumed, 0);
+  }, [externalVideoResponse, activeConvId, loadConversations, onVideoConsumed]);
 
   // ── Text send (unchanged) ──
   const handleSend = async (text) => {
@@ -963,6 +1551,12 @@ function ChatView({ token, email, externalVoiceResponse, onVoiceConsumed }) {
                           <div style={{ fontSize: '10px', opacity: 0.6, marginBottom: '4px' }}>
                             🎙️ Voice Input {msg.metadata?.audio_analysis?.risk?.severity &&
                               `· Stress: ${msg.metadata.audio_analysis.risk.severity}`}
+                          </div>
+                        )}
+                        {msg.metadata?.is_video && (
+                          <div style={{ fontSize: '10px', opacity: 0.6, marginBottom: '4px' }}>
+                            🎥 Video Check-in · Dominant: {msg.metadata?.dominant_emotion || 'unknown'}
+                            {msg.metadata?.severity && ` · Stress: ${msg.metadata.severity}`}
                           </div>
                         )}
                         {msg.content}
@@ -1352,7 +1946,8 @@ function clearAuthFromStorage() { try { localStorage.removeItem(STORAGE_KEY); } 
 // ─── APP ROOT ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [auth, setAuth] = useState(() => loadAuthFromStorage());
-  const [voiceResponse, setVoiceResponse] = useState(null); // Bridge for voice → chat
+  const [voiceResponse, setVoiceResponse] = useState(null);
+  const [videoResponse, setVideoResponse] = useState(null);
 
   const handleLogin = (token, role, email) => {
     const a = { token, role, email };
@@ -1365,9 +1960,12 @@ export default function App() {
     setAuth(null);
   };
 
-  // Bridge: SensorOverlay calls this → ChatView receives it
   const handleVoiceResponse = useCallback((data) => {
     setVoiceResponse(data);
+  }, []);
+
+  const handleVideoResponse = useCallback((data) => {
+    setVideoResponse(data);
   }, []);
 
   return (
@@ -1385,18 +1983,26 @@ export default function App() {
               <ChatView
                 token={auth.token}
                 email={auth.email}
-                externalVoiceResponse={voiceResponse} // Receive from SensorOverlay
-                onVoiceConsumed={() => setVoiceResponse(null)} // Reset after processing
+                externalVoiceResponse={voiceResponse}
+                onVoiceConsumed={() => setVoiceResponse(null)}
+                externalVideoResponse={videoResponse}
+                onVideoConsumed={() => setVideoResponse(null)}
               />
             )}
 
-            {/* Voice Pipeline — astronaut only, single instance */}
             {auth.role === "astronaut" && (
-              <SensorOverlay
-                token={auth.token}
-                isAstronaut={true}
-                onNewVoiceResponse={handleVoiceResponse}
-              />
+              <div className="media-hud">
+                <SensorOverlay
+                  token={auth.token}
+                  isAstronaut={true}
+                  onNewVoiceResponse={handleVoiceResponse}
+                />
+                <VideoOverlay
+                  token={auth.token}
+                  isAstronaut={true}
+                  onNewVideoResponse={handleVideoResponse}
+                />
+              </div>
             )}
 
             <div style={{ position: "fixed", top: "12px", right: "16px", zIndex: 400 }}>
