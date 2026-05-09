@@ -1,0 +1,16 @@
+# Ignore local environment
+venv/
+.venv/
+env/
+
+# Ignore git metadata
+.git
+.gitignore
+
+# Ignore Python caches
+**/__pycache__/
+*.pyc
+
+# Ignore local database files or logs
+*.log
+postgres_data/
